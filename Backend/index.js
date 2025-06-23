@@ -45,6 +45,20 @@ server.post("/shorturls",async(req,res)=>{
     const short_code = shortid();
 
     if(is_url){
+        const id = is_url.shortCode;
+        await url.findOneAndUpdate(
+            {
+                shortCode:id
+            },
+            {
+                $push:{
+                    visitTime:{
+                        timestamp:Date.now()
+                    }
+                }
+            }
+        )
+
         return res.json({"message":"url is already shortened"})
     }
 
@@ -84,7 +98,7 @@ server.get("/shorturls/:id",async(req,res)=>{
     else{
         await url.findOneAndUpdate(
             {
-                id
+                shortCode:id
             },
             {
                 $push:{
