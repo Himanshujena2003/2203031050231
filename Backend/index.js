@@ -2,6 +2,9 @@ const express = require("express")
 const mongoose = require("mongoose");
 const shortid = require("shortid");
 const server = express();
+const dotenv = require("dotenv")
+
+dotenv.config();
 
 // middlewares
 server.use(express.json());
@@ -9,6 +12,7 @@ server.use(express.json());
 // database connection
 async function connect(){
     await mongoose.connect(`${process.env.MONGO_URL}urldata`)
+    console.log("Connected");
 }
 
 connect();
@@ -37,15 +41,21 @@ server.post("/shorturls",async(req,res)=>{
         return res.status(404).json({"message":"url required"})
     }
 
+    const is_url = await url.findOne({"url":data.url})
     const short_code = shortid();
 
-    if(!data.shortcode && !data.validity){
+    if(is_url){
+        return res.json({"message":"url is already shortened"})
+    }
+
+    else if(!data.shortcode){
         await url.create({
             url:data.url,
             shortCode:short_code,
             visitTime:{timestamp:Date.now()}
         })
 
+        console.log(`https://localhost:8000/${short_code}`);
         return res.status(201).json({"shortLink":`https://localhost:8000/${short_code}`,"expiry":`${Date.now()}:30:00Z`});
     }
 
@@ -85,7 +95,12 @@ server.get("/shorturls/:id",async(req,res)=>{
             }
         )
 
-        res.status(200).json({"total_click":url_data.visitTime.length,"creation_time":`${url_data.visitTime[0]}`,"curr_time":Date.now(),})
+        res.status(200).json({"total_click":url_data.visitTime.length,"creation_time":`${url_data.visitTime[0]}`,"curr_time":Date.now()})
     }
     
+})
+
+
+server.listen(8000,()=>{
+    console.log("server is listening on port 8000")
 })
