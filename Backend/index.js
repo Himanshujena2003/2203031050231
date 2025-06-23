@@ -100,7 +100,6 @@ server.get("/shorturls/:id",async(req,res)=>{
     
 })
 
-
 server.listen(8000,()=>{
     console.log("server is listening on port 8000")
 })
